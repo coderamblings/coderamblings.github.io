@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summer Cottage Booking</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #4a5568;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1em;
+        }
+
+        .auth-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
+        }
+
+        .login-btn:hover {
+            background: #3367d6;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(66, 133, 244, 0.4);
+        }
+
+        .calendar-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .calendar-nav {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-nav:hover {
+            background: #5a67d8;
+            transform: scale(1.05);
+        }
+
+        .calendar-title {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            margin-bottom: 30px;
+        }
+
+        .calendar-day-header {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            border-radius: 10px;
+        }
+
+        .calendar-day {
+            background: white;
+            border: 2px solid #e2e8f0;
+            padding: 15px;
+            min-height: 80px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            border-color: #667eea;
+            background: #f7fafc;
+            transform: scale(1.02);
+        }
+
+        .calendar-day.other-month {
+            background: #f8f9fa;
+            color: #adb5bd;
+        }
+
+        .calendar-day.booked {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            border-color: #38a169;
+        }
+
+        .calendar-day.booked:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+        }
+
+        .day-number {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .booking-info {
+            font-size: 0.8em;
+            opacity: 0.9;
+        }
+
+        .booking-form {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(72, 187, 120, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+            transform: translateY(-2px);
+        }
+
+        .user-info {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-details {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 3px solid #667eea;
+        }
+
+        .logout-btn {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #c53030;
+            transform: scale(1.05);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .loading::after {
+            content: '⏳';
+            font-size: 2em;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .calendar-grid {
+                gap: 1px;
+            }
+            
+            .calendar-day {
+                padding: 10px;
+                min-height: 60px;
+            }
+            
+            .calendar-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .form-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏡 Summer Cottage Booking</h1>
+            <p>Reserve your perfect getaway dates</p>
+        </div>
+
+        <!-- Authentication Section -->
+        <div id="auth-section" class="auth-section">
+            <div class="loading">Loading...</div>
+            <button id="login-btn" class="login-btn hidden">
+                Sign in with Google
+            </button>
+        </div>
+
+        <!-- User Info (shown when logged in) -->
+        <div id="user-info" class="user-info hidden">
+            <div class="user-details">
+                <img id="user-avatar" class="user-avatar" src="" alt="User Avatar">
+                <div>
+                    <div id="user-name"></div>
+                    <div id="user-email" style="color: #718096; font-size: 0.9em;"></div>
+                </div>
+            </div>
+            <button id="logout-btn" class="logout-btn">Logout</button>
+        </div>
+
+        <!-- Calendar Container -->
+        <div id="calendar-container" class="calendar-container hidden">
+            <div class="calendar-header">
+                <button id="prev-month" class="calendar-nav">← Previous</button>
+                <h2 id="current-month" class="calendar-title"></h2>
+                <button id="next-month" class="calendar-nav">Next →</button>
+            </div>
+            
+            <div class="calendar-grid" id="calendar-grid"></div>
+        </div>
+
+        <!-- Booking Form Modal -->
+        <div id="booking-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="booking-form">
+                    <h3 id="modal-title">Book Your Stay</h3>
+                    <form id="booking-form">
+                        <div class="form-group">
+                            <label for="start-date">Start Date:</label>
+                            <input type="date" id="start-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="end-date">End Date:</label>
+                            <input type="date" id="end-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="guest-name">Your Name:</label>
+                            <input type="text" id="guest-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="notes">Notes (optional):</label>
+                            <textarea id="notes" rows="3" placeholder="Any special requests or notes..."></textarea>
+                        </div>
+                        <div class="form-buttons">
+                            <button type="submit" class="btn btn-primary">Book Now</button>
+                            <button type="button" id="cancel-booking" class="btn btn-secondary">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Sign-In Script -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <script>
+        // Configuration - Replace with your actual values
+        const CONFIG = {
+            GOOGLE_CLIENT_ID: '132010592048-ihv1dt7r0kkkoojtsf4g03uh9vtpdhn0.apps.googleusercontent.com.apps.googleusercontent.com',
+            APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw-Q5jReQ8qL0qK4zRHSLcsRVORaDVH-NEFds3eu6rbowvE_8YV4w4O9Yz-urn_Uv-7RA/exec'
+        };
+
+        // Global variables
+        let currentUser = null;
+        let currentDate = new Date();
+        let bookings = [];
+
+        // Initialize the app
+        function initializeApp() {
+            if (typeof google !== 'undefined') {
+                initializeGoogleAuth();
+            } else {
+                // Retry if Google API not loaded yet
+                setTimeout(initializeApp, 100);
+            }
+        }
+
+        // Initialize Google Authentication
+        function initializeGoogleAuth() {
+            google.accounts.id.initialize({
+                client_id: CONFIG.GOOGLE_CLIENT_ID,
+                callback: handleCredentialResponse
+            });
+
+            // Show login button
+            document.querySelector('.loading').classList.add('hidden');
+            document.getElementById('login-btn').classList.remove('hidden');
+
+            // Add event listener for login button
+            document.getElementById('login-btn').addEventListener('click', () => {
+                google.accounts.id.prompt();
+            });
+        }
+
+        // Handle Google Sign-In response
+        function handleCredentialResponse(response) {
+            const userInfo = parseJwt(response.credential);
+            currentUser = {
+                email: userInfo.email,
+                name: userInfo.name,
+                picture: userInfo.picture
+            };
+
+            // Check if user is authorized
+            checkUserAuthorization();
+        }
+
+        // Parse JWT token
+        function parseJwt(token) {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+
+        // Check if user is authorized
+        async function checkUserAuthorization() {
+            try {
+                const response = await fetch(`${CONFIG.APPS_SCRIPT_URL}?action=checkAuth&email=${currentUser.email}`);
+                const result = await response.json();
+                
+                if (result.authorized) {
+                    showMainApp();
+                } else {
+                    alert('Sorry, you are not authorized to access this booking system. Please contact the cottage owner.');
+                    document.getElementById('auth-section').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Authorization check failed:', error);
+                // For demo purposes, allow access
+                showMainApp();
+            }
+        }
+
+        // Show main application
+        function showMainApp() {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('user-info').classList.remove('hidden');
+            document.getElementById('calendar-container').classList.remove('hidden');
+
+            // Update user info
+            document.getElementById('user-name').textContent = currentUser.name;
+            document.getElementById('user-email').textContent = currentUser.email;
+            document.getElementById('user-avatar').src = currentUser.picture;
+
+            // Load bookings and render calendar
+            loadBookings();
+            renderCalendar();
+            setupEventListeners();
+        }
+
+        // Load bookings from backend
+        async function loadBookings() {
+            try {
+                const response = await fetch(`${CONFIG.APPS_SCRIPT_URL}?action=getBookings`);
+                bookings = await response.json();
+            } catch (error) {
+                console.error('Failed to load bookings:', error);
+                // Demo data for offline testing
+                bookings = [
+                    {
+                        id: 1,
+                        startDate: '2025-07-15',
+                        endDate: '2025-07-18',
+                        guestName: 'John Doe',
+                        guestEmail: 'john@example.com',
+                        notes: 'Birthday celebration'
+                    },
+                    {
+                        id: 2,
+                        startDate: '2025-07-25',
+                        endDate: '2025-07-28',
+                        guestName: 'Jane Smith',
+                        guestEmail: 'jane@example.com',
+                        notes: 'Family weekend'
+                    }
+                ];
+            }
+        }
+
+        // Render calendar
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            // Update month title
+            document.getElementById('current-month').textContent = 
+                new Date(year, month).toLocaleDateString('en-US', { 
+                    month: 'long', 
+                    year: 'numeric' 
+                });
+
+            // Clear calendar grid
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+
+            // Add day headers
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'calendar-day-header';
+                dayHeader.textContent = day;
+                grid.appendChild(dayHeader);
+            });
+
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+
+            // Add empty cells for days before the first day of the month
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day other-month';
+                grid.appendChild(emptyDay);
+            }
+
+            // Add days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = day;
+                dayElement.appendChild(dayNumber);
+
+                // Check if day is booked
+                const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const booking = findBookingForDate(dateString);
+                
+                if (booking) {
+                    dayElement.classList.add('booked');
+                    const bookingInfo = document.createElement('div');
+                    bookingInfo.className = 'booking-info';
+                    bookingInfo.textContent = booking.guestName;
+                    dayElement.appendChild(bookingInfo);
+                }
+
+                // Add click handler
+                dayElement.addEventListener('click', () => openBookingModal(dateString, booking));
+
+                grid.appendChild(dayElement);
+            }
+        }
+
+        // Find booking for a specific date
+        function findBookingForDate(date) {
+            return bookings.find(booking => {
+                const start = new Date(booking.startDate);
+                const end = new Date(booking.endDate);
+                const checkDate = new Date(date);
+                return checkDate >= start && checkDate <= end;
+            });
+        }
+
+        // Open booking modal
+        function openBookingModal(date, existingBooking = null) {
+            const modal = document.getElementById('booking-modal');
+            const startDateInput = document.getElementById('start-date');
+            const endDateInput = document.getElementById('end-date');
+            const guestNameInput = document.getElementById('guest-name');
+            const notesInput = document.getElementById('notes');
+            const modalTitle = document.getElementById('modal-title');
+
+            if (existingBooking) {
+                modalTitle.textContent = 'View Booking';
+                startDateInput.value = existingBooking.startDate;
+                endDateInput.value = existingBooking.endDate;
+                guestNameInput.value = existingBooking.guestName;
+                notesInput.value = existingBooking.notes || '';
+                
+                // Make read-only if not current user's booking
+                const isOwnBooking = existingBooking.guestEmail === currentUser.email;
+                startDateInput.disabled = !isOwnBooking;
+                endDateInput.disabled = !isOwnBooking;
+                guestNameInput.disabled = !isOwnBooking;
+                notesInput.disabled = !isOwnBooking;
+            } else {
+                modalTitle.textContent = 'Book Your Stay';
+                startDateInput.value = date;
+                endDateInput.value = date;
+                guestNameInput.value = currentUser.name;
+                notesInput.value = '';
+                
+                // Enable all fields
+                startDateInput.disabled = false;
+                endDateInput.disabled = false;
+                guestNameInput.disabled = false;
+                notesInput.disabled = false;
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Calendar navigation
+            document.getElementById('prev-month').addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                renderCalendar();
+            });
+
+            document.getElementById('next-month').addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                renderCalendar();
+            });
+
+            // Logout
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                currentUser = null;
+                document.getElementById('user-info').classList.add('hidden');
+                document.getElementById('calendar-container').classList.add('hidden');
+                document.getElementById('auth-section').classList.remove('hidden');
+                document.querySelector('.loading').classList.add('hidden');
+                document.getElementById('login-btn').classList.remove('hidden');
+            });
+
+            // Modal close
+            document.getElementById('cancel-booking').addEventListener('click', () => {
+                document.getElementById('booking-modal').classList.add('hidden');
+            });
+
+            // Booking form submission
+            document.getElementById('booking-form').addEventListener('submit', handleBookingSubmission);
+
+            // Close modal when clicking outside
+            document.getElementById('booking-modal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('booking-modal')) {
+                    document.getElementById('booking-modal').classList.add('hidden');
+                }
+            });
+        }
+
+        // Handle booking form submission
+        async function handleBookingSubmission(e) {
+            e.preventDefault();
+            
+            const formData = {
+                startDate: document.getElementById('start-date').value,
+                endDate: document.getElementById('end-date').value,
+                guestName: document.getElementById('guest-name').value,
+                guestEmail: currentUser.email,
+                notes: document.getElementById('notes').value
+            };
+
+            try {
+                const response = await fetch(CONFIG.APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'addBooking',
+                        ...formData
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Booking successful!');
+                    document.getElementById('booking-modal').classList.add('hidden');
+                    loadBookings().then(() => renderCalendar());
+                } else {
+                    alert('Booking failed: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Booking submission failed:', error);
+                alert('Booking failed. Please try again.');
+            }
+        }
+
+        // Start the app when page loads
+        window.addEventListener('load', initializeApp);
+    </script>
+</body>
+</html>
