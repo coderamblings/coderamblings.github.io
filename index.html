@@ -283,7 +283,7 @@
         }
 
         .hidden {
-            display: none;
+            display: none !important;
         }
 
         .modal {
@@ -350,7 +350,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏡 Summer Cottage Booking - v2.1</h1>
+            <h1>🏡 Summer Cottage Booking v.13</h1>
             <p>Reserve your perfect getaway dates</p>
         </div>
 
@@ -434,6 +434,19 @@
 
         // Initialize the app
         function initializeApp() {
+            console.log('=== INITIALIZING APP ===');
+            console.log('Modal element:', document.getElementById('booking-modal'));
+            console.log('Modal classes:', document.getElementById('booking-modal')?.classList);
+            console.log('Auth section:', document.getElementById('auth-section'));
+            console.log('Auth section classes:', document.getElementById('auth-section')?.classList);
+            
+            // Ensure modal is hidden on startup
+            const modal = document.getElementById('booking-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                console.log('Modal hidden class added');
+            }
+            
             if (typeof google !== 'undefined') {
                 initializeGoogleAuth();
             } else {
@@ -444,17 +457,30 @@
 
         // Initialize Google Authentication
         function initializeGoogleAuth() {
+            console.log('=== INITIALIZING GOOGLE AUTH ===');
+            
             google.accounts.id.initialize({
                 client_id: CONFIG.GOOGLE_CLIENT_ID,
                 callback: handleCredentialResponse
             });
 
             // Show login button
-            document.querySelector('.loading').classList.add('hidden');
-            document.getElementById('login-btn').classList.remove('hidden');
+            const loadingElement = document.querySelector('.loading');
+            const loginBtn = document.getElementById('login-btn');
+            
+            if (loadingElement) {
+                loadingElement.classList.add('hidden');
+                console.log('Loading element hidden');
+            }
+            
+            if (loginBtn) {
+                loginBtn.classList.remove('hidden');
+                console.log('Login button shown');
+            }
 
             // Add event listener for login button
             document.getElementById('login-btn').addEventListener('click', () => {
+                console.log('Login button clicked');
                 google.accounts.id.prompt();
             });
         }
@@ -801,7 +827,33 @@
         }
 
         // Start the app when page loads
-        window.addEventListener('load', initializeApp);
+        window.addEventListener('load', () => {
+            console.log('=== PAGE LOADED ===');
+            
+            // Ensure proper initial state
+            const elementsToHide = [
+                'booking-modal',
+                'user-info', 
+                'calendar-container'
+            ];
+            
+            elementsToHide.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.classList.add('hidden');
+                    console.log(`${id} hidden on startup`);
+                }
+            });
+            
+            // Show auth section
+            const authSection = document.getElementById('auth-section');
+            if (authSection) {
+                authSection.classList.remove('hidden');
+                console.log('Auth section shown');
+            }
+            
+            initializeApp();
+        });
     </script>
 </body>
 </html>
