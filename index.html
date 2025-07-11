@@ -463,29 +463,26 @@
             }
         }
 
-        // Initialize Google Authentication with alternative method
+        // Initialize Google Authentication with popup method
         function initializeGoogleAuth() {
-            console.log('=== INITIALIZING GOOGLE AUTH ===');
+            console.log('=== INITIALIZING GOOGLE AUTH (POPUP METHOD) ===');
             
             // Test OAuth config first
             testOAuthConfig();
             
             try {
-                // Use the newer Google Identity Services with popup
-                google.accounts.id.initialize({
+                // Use OAuth2 popup method instead of Identity Services
+                window.gsiClient = google.accounts.oauth2.initTokenClient({
                     client_id: CONFIG.GOOGLE_CLIENT_ID,
-                    callback: handleCredentialResponse,
-                    auto_select: false,
-                    cancel_on_tap_outside: false,
-                    use_fedcm_for_prompt: false  // Disable FedCM to avoid CORS issues
+                    scope: 'email profile openid',
+                    callback: handleTokenResponse,
+                    error_callback: (error) => {
+                        console.error('OAuth error:', error);
+                        alert('Authentication failed: ' + error.type);
+                    }
                 });
 
-                // Alternative: Use popup-based sign in
-                const gsiClient = google.accounts.oauth2.initTokenClient({
-                    client_id: CONFIG.GOOGLE_CLIENT_ID,
-                    scope: 'email profile',
-                    callback: handleTokenResponse
-                });
+                console.log('OAuth client initialized successfully');
 
                 // Show login button
                 const loadingElement = document.querySelector('.loading');
@@ -503,89 +500,85 @@
 
                 // Add event listener for login button
                 document.getElementById('login-btn').addEventListener('click', () => {
-                    console.log('Login button clicked - using popup method');
+                    console.log('Login button clicked - requesting access token');
                     try {
-                        // Try popup method first
-                        gsiClient.requestAccessToken();
-                    } catch (error) {
-                        console.error('Popup method failed, trying prompt:', error);
-                        // Fallback to prompt method
-                        google.accounts.id.prompt((notification) => {
-                            console.log('Prompt notification:', notification);
+                        window.gsiClient.requestAccessToken({
+                            prompt: 'consent'
                         });
+                    } catch (error) {
+                        console.error('Error requesting access token:', error);
+                        alert('Login failed. Please try again.');
                     }
                 });
                 
             } catch (error) {
-                console.error('Error initializing Google Auth:', error);
+                console.error('Error initializing Google OAuth:', error);
+                alert('Failed to initialize authentication. Check your client ID.');
             }
         }
 
         // Handle token response from popup method
         function handleTokenResponse(response) {
-            console.log('Token response received:', response);
+            console.log('=== TOKEN RESPONSE RECEIVED ===');
+            console.log('Response object:', response);
             
             if (response.access_token) {
+                console.log('Access token received, fetching user info...');
+                
                 // Get user info using the access token
                 fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=${response.access_token}`)
-                    .then(response => response.json())
+                    .then(response => {
+                        console.log('User info response status:', response.status);
+                        return response.json();
+                    })
                     .then(userInfo => {
-                        console.log('User info:', userInfo);
+                        console.log('User info received:', userInfo);
                         currentUser = {
                             email: userInfo.email,
                             name: userInfo.name,
                             picture: userInfo.picture
                         };
+                        console.log('Current user set:', currentUser);
                         checkUserAuthorization();
                     })
                     .catch(error => {
-                        console.error('Error getting user info:', error);
-                        alert('Authentication failed. Please try again.');
+                        console.error('Error fetching user info:', error);
+                        alert('Failed to get user information. Please try again.');
                     });
             } else {
-                console.error('No access token received');
-                alert('Authentication failed. Please try again.');
+                console.error('No access token in response:', response);
+                alert('Authentication failed - no access token received.');
             }
         }
 
-        // Handle Google Sign-In response
-        function handleCredentialResponse(response) {
-            const userInfo = parseJwt(response.credential);
-            currentUser = {
-                email: userInfo.email,
-                name: userInfo.name,
-                picture: userInfo.picture
-            };
-
-            // Check if user is authorized
-            checkUserAuthorization();
-        }
-
-        // Parse JWT token
-        function parseJwt(token) {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            return JSON.parse(jsonPayload);
-        }
-
-        // Check if user is authorized
+        // Check if user is authorized (updated for popup method)
         async function checkUserAuthorization() {
+            console.log('=== CHECKING USER AUTHORIZATION ===');
+            console.log('Checking authorization for:', currentUser.email);
+            
             try {
                 const response = await fetch(`${CONFIG.APPS_SCRIPT_URL}?action=checkAuth&email=${currentUser.email}`);
+                console.log('Authorization response status:', response.status);
+                
                 const result = await response.json();
+                console.log('Authorization result:', result);
                 
                 if (result.authorized) {
+                    console.log('User is authorized, showing main app');
                     showMainApp();
                 } else {
+                    console.log('User is not authorized');
                     alert('Sorry, you are not authorized to access this booking system. Please contact the cottage owner.');
+                    // Reset to login state
+                    currentUser = null;
                     document.getElementById('auth-section').classList.remove('hidden');
+                    document.getElementById('user-info').classList.add('hidden');
+                    document.getElementById('calendar-container').classList.add('hidden');
                 }
             } catch (error) {
                 console.error('Authorization check failed:', error);
-                // For demo purposes, allow access
+                // For demo purposes or if API is down, you can temporarily allow access
+                console.log('Authorization check failed, but allowing access for testing');
                 showMainApp();
             }
         }
