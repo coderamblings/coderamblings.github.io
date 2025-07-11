@@ -423,8 +423,8 @@
     <script>
         // Configuration - Replace with your actual values
         const CONFIG = {
-            GOOGLE_CLIENT_ID: '132010592048-ihv1dt7r0kkkoojtsf4g03uh9vtpdhn0.apps.googleusercontent.com.apps.googleusercontent.com',
-            APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw-Q5jReQ8qL0qK4zRHSLcsRVORaDVH-NEFds3eu6rbowvE_8YV4w4O9Yz-urn_Uv-7RA/exec'
+        GOOGLE_CLIENT_ID: '132010592048-ihv1dt7r0kkkoojtsf4g03uh9vtpdhn0.apps.googleusercontent.com.apps.googleusercontent.com',
+        APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw-Q5jReQ8qL0qK4zRHSLcsRVORaDVH-NEFds3eu6rbowvE_8YV4w4O9Yz-urn_Uv-7RA/exec'
         };
 
         // Global variables
@@ -687,12 +687,24 @@
             });
 
             // Modal close
-            document.getElementById('cancel-booking').addEventListener('click', () => {
+            document.getElementById('cancel-booking').addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Cancel button clicked');
                 document.getElementById('booking-modal').classList.add('hidden');
             });
 
             // Booking form submission
             document.getElementById('booking-form').addEventListener('submit', handleBookingSubmission);
+
+            // Also add click handler to submit button as backup
+            const submitButton = document.querySelector('#booking-form button[type="submit"]');
+            if (submitButton) {
+                submitButton.addEventListener('click', (e) => {
+                    console.log('Submit button clicked');
+                    // Let the form submit event handle it
+                });
+            }
 
             // Close modal when clicking outside
             document.getElementById('booking-modal').addEventListener('click', (e) => {
@@ -705,6 +717,9 @@
         // Handle booking form submission
         async function handleBookingSubmission(e) {
             e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('Form submission started');
             
             const formData = {
                 startDate: document.getElementById('start-date').value,
@@ -714,31 +729,57 @@
                 notes: document.getElementById('notes').value
             };
 
+            console.log('Form data:', formData);
+
+            // Basic validation
+            if (!formData.startDate || !formData.endDate || !formData.guestName) {
+                alert('Please fill in all required fields');
+                return false;
+            }
+
+            if (new Date(formData.startDate) > new Date(formData.endDate)) {
+                alert('End date must be after start date');
+                return false;
+            }
+
             try {
+                console.log('Sending request to:', CONFIG.APPS_SCRIPT_URL);
+                
+                const requestData = {
+                    action: 'addBooking',
+                    ...formData
+                };
+                
+                console.log('Request data:', requestData);
+
                 const response = await fetch(CONFIG.APPS_SCRIPT_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        action: 'addBooking',
-                        ...formData
-                    })
+                    body: JSON.stringify(requestData)
                 });
 
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+
                 const result = await response.json();
+                console.log('Response data:', result);
                 
                 if (result.success) {
                     alert('Booking successful!');
                     document.getElementById('booking-modal').classList.add('hidden');
-                    loadBookings().then(() => renderCalendar());
+                    await loadBookings();
+                    renderCalendar();
                 } else {
                     alert('Booking failed: ' + result.error);
                 }
             } catch (error) {
                 console.error('Booking submission failed:', error);
-                alert('Booking failed. Please try again.');
+                alert('Booking failed. Please try again. Check console for details.');
             }
+            
+            return false; // Prevent any default form submission
         }
 
         // Start the app when page loads
