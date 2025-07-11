@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Summer Cottage Booking</title>
+    <title>Summer Cottage Booking - v2.1</title>
     <style>
         * {
             margin: 0;
@@ -423,8 +423,8 @@
     <script>
         // Configuration - Replace with your actual values
         const CONFIG = {
-        GOOGLE_CLIENT_ID: '132010592048-ihv1dt7r0kkkoojtsf4g03uh9vtpdhn0.apps.googleusercontent.com.apps.googleusercontent.com',
-        APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw-Q5jReQ8qL0qK4zRHSLcsRVORaDVH-NEFds3eu6rbowvE_8YV4w4O9Yz-urn_Uv-7RA/exec'
+            GOOGLE_CLIENT_ID: '132010592048-ihv1dt7r0kkkoojtsf4g03uh9vtpdhn0.apps.googleusercontent.com.apps.googleusercontent.com',
+            APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw-Q5jReQ8qL0qK4zRHSLcsRVORaDVH-NEFds3eu6rbowvE_8YV4w4O9Yz-urn_Uv-7RA/exec'
         };
 
         // Global variables
@@ -503,6 +503,8 @@
 
         // Show main application
         function showMainApp() {
+            console.log('Showing main app for user:', currentUser);
+            
             document.getElementById('auth-section').classList.add('hidden');
             document.getElementById('user-info').classList.remove('hidden');
             document.getElementById('calendar-container').classList.remove('hidden');
@@ -513,9 +515,10 @@
             document.getElementById('user-avatar').src = currentUser.picture;
 
             // Load bookings and render calendar
-            loadBookings();
-            renderCalendar();
-            setupEventListeners();
+            loadBookings().then(() => {
+                renderCalendar();
+                setupEventListeners();
+            });
         }
 
         // Load bookings from backend
@@ -608,7 +611,14 @@
                 }
 
                 // Add click handler
-                dayElement.addEventListener('click', () => openBookingModal(dateString, booking));
+                dayElement.addEventListener('click', () => {
+                    // Only allow booking if user is authenticated
+                    if (!currentUser) {
+                        console.log('User not authenticated, cannot book');
+                        return;
+                    }
+                    openBookingModal(dateString, booking);
+                });
 
                 grid.appendChild(dayElement);
             }
@@ -626,6 +636,14 @@
 
         // Open booking modal
         function openBookingModal(date, existingBooking = null) {
+            // Don't open modal if user isn't logged in
+            if (!currentUser) {
+                console.log('User not logged in, cannot open booking modal');
+                return;
+            }
+            
+            console.log('Opening booking modal for date:', date, 'existing booking:', existingBooking);
+            
             const modal = document.getElementById('booking-modal');
             const startDateInput = document.getElementById('start-date');
             const endDateInput = document.getElementById('end-date');
