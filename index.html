@@ -350,7 +350,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏡 Summer Cottage Booking v.13</h1>
+            <h1>🏡 Summer Cottage Booking</h1>
             <p>Reserve your perfect getaway dates</p>
         </div>
 
@@ -427,6 +427,14 @@
             APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw-Q5jReQ8qL0qK4zRHSLcsRVORaDVH-NEFds3eu6rbowvE_8YV4w4O9Yz-urn_Uv-7RA/exec'
         };
 
+        // Debug function to test OAuth config
+        function testOAuthConfig() {
+            console.log('=== TESTING OAUTH CONFIG ===');
+            console.log('Current domain:', window.location.origin);
+            console.log('Client ID:', CONFIG.GOOGLE_CLIENT_ID);
+            console.log('Make sure your OAuth client allows this domain!');
+        }
+
         // Global variables
         let currentUser = null;
         let currentDate = new Date();
@@ -455,34 +463,89 @@
             }
         }
 
-        // Initialize Google Authentication
+        // Initialize Google Authentication with alternative method
         function initializeGoogleAuth() {
             console.log('=== INITIALIZING GOOGLE AUTH ===');
             
-            google.accounts.id.initialize({
-                client_id: CONFIG.GOOGLE_CLIENT_ID,
-                callback: handleCredentialResponse
-            });
-
-            // Show login button
-            const loadingElement = document.querySelector('.loading');
-            const loginBtn = document.getElementById('login-btn');
+            // Test OAuth config first
+            testOAuthConfig();
             
-            if (loadingElement) {
-                loadingElement.classList.add('hidden');
-                console.log('Loading element hidden');
-            }
-            
-            if (loginBtn) {
-                loginBtn.classList.remove('hidden');
-                console.log('Login button shown');
-            }
+            try {
+                // Use the newer Google Identity Services with popup
+                google.accounts.id.initialize({
+                    client_id: CONFIG.GOOGLE_CLIENT_ID,
+                    callback: handleCredentialResponse,
+                    auto_select: false,
+                    cancel_on_tap_outside: false,
+                    use_fedcm_for_prompt: false  // Disable FedCM to avoid CORS issues
+                });
 
-            // Add event listener for login button
-            document.getElementById('login-btn').addEventListener('click', () => {
-                console.log('Login button clicked');
-                google.accounts.id.prompt();
-            });
+                // Alternative: Use popup-based sign in
+                const gsiClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CONFIG.GOOGLE_CLIENT_ID,
+                    scope: 'email profile',
+                    callback: handleTokenResponse
+                });
+
+                // Show login button
+                const loadingElement = document.querySelector('.loading');
+                const loginBtn = document.getElementById('login-btn');
+                
+                if (loadingElement) {
+                    loadingElement.classList.add('hidden');
+                    console.log('Loading element hidden');
+                }
+                
+                if (loginBtn) {
+                    loginBtn.classList.remove('hidden');
+                    console.log('Login button shown');
+                }
+
+                // Add event listener for login button
+                document.getElementById('login-btn').addEventListener('click', () => {
+                    console.log('Login button clicked - using popup method');
+                    try {
+                        // Try popup method first
+                        gsiClient.requestAccessToken();
+                    } catch (error) {
+                        console.error('Popup method failed, trying prompt:', error);
+                        // Fallback to prompt method
+                        google.accounts.id.prompt((notification) => {
+                            console.log('Prompt notification:', notification);
+                        });
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Error initializing Google Auth:', error);
+            }
+        }
+
+        // Handle token response from popup method
+        function handleTokenResponse(response) {
+            console.log('Token response received:', response);
+            
+            if (response.access_token) {
+                // Get user info using the access token
+                fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=${response.access_token}`)
+                    .then(response => response.json())
+                    .then(userInfo => {
+                        console.log('User info:', userInfo);
+                        currentUser = {
+                            email: userInfo.email,
+                            name: userInfo.name,
+                            picture: userInfo.picture
+                        };
+                        checkUserAuthorization();
+                    })
+                    .catch(error => {
+                        console.error('Error getting user info:', error);
+                        alert('Authentication failed. Please try again.');
+                    });
+            } else {
+                console.error('No access token received');
+                alert('Authentication failed. Please try again.');
+            }
         }
 
         // Handle Google Sign-In response
