@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Summer Cottage Booking - v2.1</title>
+    <title>Summer Cottage Booking - v20</title>
     <style>
         * {
             margin: 0;
@@ -350,7 +350,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏡 Summer Cottage Booking</h1>
+            <h1>🏡 Summer Cottage Booking - v.20</h1>
             <p>Reserve your perfect getaway dates</p>
         </div>
 
@@ -431,8 +431,20 @@
         function testOAuthConfig() {
             console.log('=== TESTING OAUTH CONFIG ===');
             console.log('Current domain:', window.location.origin);
+            console.log('Full URL:', window.location.href);
             console.log('Client ID:', CONFIG.GOOGLE_CLIENT_ID);
+            console.log('Client ID length:', CONFIG.GOOGLE_CLIENT_ID.length);
+            console.log('Ends with .apps.googleusercontent.com?', CONFIG.GOOGLE_CLIENT_ID.endsWith('.apps.googleusercontent.com'));
             console.log('Make sure your OAuth client allows this domain!');
+            
+            // Check if client ID is still the placeholder
+            if (CONFIG.GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+                console.error('❌ CLIENT ID IS STILL PLACEHOLDER! You need to replace it with your actual client ID.');
+                alert('Error: You need to replace YOUR_GOOGLE_CLIENT_ID with your actual Google Client ID in the CONFIG section.');
+                return false;
+            }
+            
+            return true;
         }
 
         // Global variables
@@ -468,7 +480,9 @@
             console.log('=== INITIALIZING GOOGLE AUTH (POPUP METHOD) ===');
             
             // Test OAuth config first
-            testOAuthConfig();
+            if (!testOAuthConfig()) {
+                return; // Stop if config is invalid
+            }
             
             try {
                 // Use OAuth2 popup method instead of Identity Services
@@ -501,6 +515,7 @@
                 // Add event listener for login button
                 document.getElementById('login-btn').addEventListener('click', () => {
                     console.log('Login button clicked - requesting access token');
+                    console.log('Using client ID:', CONFIG.GOOGLE_CLIENT_ID);
                     try {
                         window.gsiClient.requestAccessToken({
                             prompt: 'consent'
