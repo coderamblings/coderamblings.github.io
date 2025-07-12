@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Summer Cottage Booking - v20</title>
+    <title>🏡 Frontura Booking - v21</title>
     <style>
         * {
             margin: 0;
@@ -350,7 +350,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏡 Summer Cottage Booking - v.20</h1>
+            <h1>🏡 Frontura Booking - v21</h1>
             <p>Reserve your perfect getaway dates</p>
         </div>
 
@@ -620,11 +620,37 @@
 
         // Load bookings from backend
         async function loadBookings() {
+            console.log('=== LOADING BOOKINGS ===');
+            console.log('Apps Script URL:', CONFIG.APPS_SCRIPT_URL);
+            
             try {
-                const response = await fetch(`${CONFIG.APPS_SCRIPT_URL}?action=getBookings`);
-                bookings = await response.json();
+                const url = `${CONFIG.APPS_SCRIPT_URL}?action=getBookings`;
+                console.log('Fetching from:', url);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const responseText = await response.text();
+                console.log('Raw response:', responseText);
+                
+                bookings = JSON.parse(responseText);
+                console.log('Bookings loaded:', bookings);
+                
             } catch (error) {
                 console.error('Failed to load bookings:', error);
+                console.log('Using demo data instead');
+                
                 // Demo data for offline testing
                 bookings = [
                     {
@@ -644,6 +670,11 @@
                         notes: 'Family weekend'
                     }
                 ];
+                
+                // Show user that we're using demo data
+                if (error.message.includes('CORS') || error.message.includes('fetch')) {
+                    console.log('CORS error detected - Apps Script needs redeployment');
+                }
             }
         }
 
