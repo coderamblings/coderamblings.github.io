@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏡 Frontura Booking - v22</title>
+    <title>Summer Cottage Booking - v22</title>
     <style>
         * {
             margin: 0;
@@ -350,7 +350,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏡 Frontura Booking - v22</h1>
+            <h1>🏡 Summer Cottage Booking - v22</h1>
             <p>Reserve your perfect getaway dates</p>
         </div>
 
@@ -424,7 +424,7 @@
         // Configuration - Replace with your actual values
         const CONFIG = {
             GOOGLE_CLIENT_ID: '132010592048-ihv1dt7r0kkkoojtsf4g03uh9vtpdhn0.apps.googleusercontent.com',
-            APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxjMalR0Wz4JsisIjkhph6HQlPiU9zshPlaNl7QiycFTRGClE6BHKCLqq1QP-oREgH8jQ/exec'
+            APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycby614Wpv1SRBgeEp2BtsP1my1O0XaIn_DjRydogeheA76BsKHKNFg0K5ehQeicp--RlWA/exec'
         };
 
         // Debug function to test OAuth config
@@ -860,7 +860,7 @@
             });
         }
 
-        // Handle booking form submission
+        // Handle booking form submission with JSONP workaround
         async function handleBookingSubmission(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -889,27 +889,10 @@
             }
 
             try {
-                console.log('Sending request to:', CONFIG.APPS_SCRIPT_URL);
+                console.log('Sending request via JSONP workaround...');
                 
-                const requestData = {
-                    action: 'addBooking',
-                    ...formData
-                };
-                
-                console.log('Request data:', requestData);
-
-                const response = await fetch(CONFIG.APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestData)
-                });
-
-                console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
-
-                const result = await response.json();
+                // Use JSONP approach to avoid CORS issues
+                const result = await submitBookingViaJSONP(formData);
                 console.log('Response data:', result);
                 
                 if (result.success) {
@@ -925,7 +908,56 @@
                 alert('Booking failed. Please try again. Check console for details.');
             }
             
-            return false; // Prevent any default form submission
+            return false;
+        }
+
+        // JSONP workaround for POST requests
+        function submitBookingViaJSONP(formData) {
+            return new Promise((resolve, reject) => {
+                // Create a unique callback name
+                const callbackName = 'bookingCallback_' + Date.now();
+                
+                // Create the callback function
+                window[callbackName] = function(response) {
+                    // Clean up
+                    document.body.removeChild(script);
+                    delete window[callbackName];
+                    
+                    resolve(response);
+                };
+                
+                // Prepare the data as URL parameters
+                const params = new URLSearchParams({
+                    action: 'addBooking',
+                    startDate: formData.startDate,
+                    endDate: formData.endDate,
+                    guestName: formData.guestName,
+                    guestEmail: formData.guestEmail,
+                    notes: formData.notes,
+                    callback: callbackName
+                });
+                
+                // Create script tag for JSONP
+                const script = document.createElement('script');
+                script.src = `${CONFIG.APPS_SCRIPT_URL}?${params.toString()}`;
+                script.onerror = function() {
+                    document.body.removeChild(script);
+                    delete window[callbackName];
+                    reject(new Error('JSONP request failed'));
+                };
+                
+                // Add script to page
+                document.body.appendChild(script);
+                
+                // Timeout after 10 seconds
+                setTimeout(() => {
+                    if (window[callbackName]) {
+                        document.body.removeChild(script);
+                        delete window[callbackName];
+                        reject(new Error('Request timeout'));
+                    }
+                }, 10000);
+            });
         }
 
         // Start the app when page loads
