@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+        <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -357,8 +357,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h2>🏡 Frontura Early Access Booking (v35)</h2>
-            <p>Who's who, when?</p>
+            <h2>🏡 Frontura Early Access Booking (v0.36)</h2>
+            <p>Who's who, when.</p>
         </div>
 
         <!-- Authentication Section -->
@@ -430,8 +430,9 @@
     <script>
         // Configuration - Replace with your actual values
         const CONFIG = {
-            GOOGLE_CLIENT_ID: '132010592048-ihv1dt7r0kkkoojtsf4g03uh9vtpdhn0.apps.googleusercontent.com',
-            APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw5VmU_05XjeNp7CgJt17auuM6Q3sO9L6TAgxLWKKjQvZUkvF5FKXXNbpHUixe7Qn0S8g/exec'
+        GOOGLE_CLIENT_ID: '132010592048-ihv1dt7r0kkkoojtsf4g03uh9vtpdhn0.apps.googleusercontent.com',
+        APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw5VmU_05XjeNp7CgJt17auuM6Q3sO9L6TAgxLWKKjQvZUkvF5FKXXNbpHUixe7Qn0S8g/exec'
+ 
         };
 
         // Debug function to test OAuth config
@@ -687,8 +688,12 @@
 
         // Render calendar
         function renderCalendar() {
+            console.log('Rendering calendar for:', currentDate);
+            
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
+            
+            console.log('Year:', year, 'Month:', month, 'Month name:', new Date(year, month).toLocaleDateString('en-US', { month: 'long' }));
             
             // Update month title
             document.getElementById('current-month').textContent = 
@@ -715,9 +720,13 @@
             const lastDay = new Date(year, month + 1, 0);
             const daysInMonth = lastDay.getDate();
             
+            console.log('First day of month:', firstDay, 'Days in month:', daysInMonth);
+            
             // Adjust starting day of week (0=Sunday, 1=Monday, etc.) to Monday start
             let startingDayOfWeek = firstDay.getDay();
             startingDayOfWeek = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1; // Convert Sunday (0) to 6, others shift down by 1
+            
+            console.log('Starting day of week (0=Monday):', startingDayOfWeek);
 
             // Add empty cells for days before the first day of the month
             for (let i = 0; i < startingDayOfWeek; i++) {
@@ -821,14 +830,28 @@
 
         // Setup event listeners
         function setupEventListeners() {
-            // Calendar navigation
+            // Calendar navigation with proper month handling
             document.getElementById('prev-month').addEventListener('click', () => {
-                currentDate.setMonth(currentDate.getMonth() - 1);
+                console.log('Previous month clicked. Current date before:', currentDate);
+                
+                // Safer month navigation - set to first of month to avoid day overflow issues
+                const newYear = currentDate.getFullYear();
+                const newMonth = currentDate.getMonth() - 1;
+                currentDate = new Date(newYear, newMonth, 1);
+                
+                console.log('Current date after:', currentDate);
                 renderCalendar();
             });
 
             document.getElementById('next-month').addEventListener('click', () => {
-                currentDate.setMonth(currentDate.getMonth() + 1);
+                console.log('Next month clicked. Current date before:', currentDate);
+                
+                // Safer month navigation - set to first of month to avoid day overflow issues
+                const newYear = currentDate.getFullYear();
+                const newMonth = currentDate.getMonth() + 1;
+                currentDate = new Date(newYear, newMonth, 1);
+                
+                console.log('Current date after:', currentDate);
                 renderCalendar();
             });
 
